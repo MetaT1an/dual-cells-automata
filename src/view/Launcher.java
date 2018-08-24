@@ -1,5 +1,7 @@
 package view;
 
+import Control.AnimationControl;
+import Control.ConsoleControl;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -18,6 +20,10 @@ public class Launcher extends Application{
         borderPane.setCenter(cellsPane.getCanvas());
         borderPane.setRight(consolePane.getvBox());
         BorderPane.setMargin(borderPane.getRight(), new Insets(0, 20, 0, 0));
+
+        // add events
+        ConsoleControl.addControlEvents();
+        AnimationControl.addAnimation();
 
         Scene scene = new Scene(borderPane);
         stage.setScene(scene);

@@ -8,12 +8,15 @@ public class Grids {
     private ArrayList<Cell> aroundCells;
     public static int N = 50;
     private static double cowBirthRate = 0.16;
-    private static double grassBirthRate = 0.66;
+    private static double grassBirthRate = 0.36;
+    private static int SA_FOR_COW = 0;
+    private static int CA_FOR_COW = 4;
+    private static int RA_FOR_COW = 2;
+    private static int RA_FOR_GRASS = 2;
 
     private Grids() {
         cells = new Cell[N][N];
         oldCells = new Cell[N][N];
-        genCells();
         aroundCells = new ArrayList<>();
     }
 
@@ -25,29 +28,36 @@ public class Grids {
         return grids;
     }
 
+    public static void resetArgs(int saForCow, int caForCow, int raForCow, int raForGrass){
+        SA_FOR_COW = saForCow;
+        CA_FOR_COW = caForCow;
+        RA_FOR_COW = raForCow;
+        RA_FOR_GRASS = raForGrass;
+    }
+
     private void setCow(int i, int j){
-        oldCells[i][j] = new Cow();
+        cells[i][j] = new Cow();
     }
 
     private void setGrass(int i, int j){
-        oldCells[i][j] = new Grass();
+        cells[i][j] = new Grass();
     }
 
     public Cell getCell(int i, int j){
         return oldCells[i][j];
     }
 
-    public void genAroundCells(int i, int j){
+    private void genAroundCells(int i, int j){
         aroundCells.clear();
         for(int m=i-1; m<=N-1 && m>=0 && m<=i+1; ++m)
             for(int n=j-1; n<=N-1 && n>=0 && n<=j+1; ++n){
                 if(m == i && n == j)
                     continue;
-                aroundCells.add(getCell(i, j));
+                aroundCells.add(getCell(m, n));
             }
     }
 
-    public int countCow(){
+    private int countCow(){
         int n = 0;
         for(Cell cell : aroundCells){
             if(cell instanceof Cow && cell.isLive())
@@ -56,7 +66,7 @@ public class Grids {
         return n;
     }
 
-    public int countGrass(){
+    private int countGrass(){
         int n = 0;
         for(Cell cell : aroundCells){
             if(cell instanceof Grass && cell.isLive())
@@ -65,7 +75,7 @@ public class Grids {
         return n;
     }
 
-    private void genCells(){
+    public void resetCells(){
         int i, j;
         double p;
         for(i = 0; i < N; ++i){
@@ -78,31 +88,55 @@ public class Grids {
                     setGrass(i, j);
                 } else {
                     setGrass(i, j);
-                    getCell(i, j).die();    // status = 0
+                    cells[i][j].die();    // status = 0
                 }
             }
         }
+        copyCells();
     }
 
-    // test initializing
+    private void copyCells(){
+        for(int i = 0; i < Grids.N; ++i){
+            System.arraycopy(cells[i], 0, oldCells[i], 0, Grids.N);
+        }
+    }
 
-//    public static void main(String[] args){
-//        Grids grids = new Grids();
-//        Cell cell;
-//        for(int i = 0; i < N; ++i){
-//            for(int j = 0; j < N; ++j){
-//                cell = grids.getCell(i, j);
-//                if(cell instanceof Grass && cell.isDie()){
-//                    System.out.print(" ");
-//                } else if(cell instanceof Grass && cell.isLive()){
-//                    System.out.print("G ");
-//                } else{
-//                    System.out.print("C ");
-//                }
-//            }
-//            System.out.println();
-//        }
-//    }
+    public void scan(){
+        Cell cell;
+        int c, g;
+        for(int i = 0; i < N; ++i) {
+            for (int j = 0; j < N; ++j) {
+
+                cell = getCell(i, j);
+                genAroundCells(i, j);
+                c = countCow();
+                g = countGrass();
+
+                if (cell.isDie()) {
+                    if (c >= g && c >= RA_FOR_COW && c < 4) {
+                        setCow(i, j);
+                    } else if (g >= c && g >= RA_FOR_GRASS) {
+                        setGrass(i, j);
+                    } else {
+                        // remain died
+                    }
+                } else if (cell instanceof Cow) {
+                    if (g >= c + SA_FOR_COW && g != 0) {
+                        cell.live();
+                    } else {
+                        cell.die();
+                    }
+                } else {    // grass
+                    if (c >= CA_FOR_COW || g >= 5) {
+                        cell.die();
+                    } else {
+                        cell.live();
+                    }
+                }
+            }
+        }
+        copyCells();
+    }
 }
 
 

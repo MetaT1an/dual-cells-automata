@@ -21,14 +21,13 @@ public class CellsPane {
         return cellsPane;
     }
 
+    public GraphicsContext getGc() {
+        return gc;
+    }
+
     private CellsPane(){
         canvas = new Canvas(SCALE, SCALE);
         gc = canvas.getGraphicsContext2D();
-        init();
-    }
-
-    public void clearCanvas(){
-        gc.clearRect(0, 0, SCALE, SCALE);
         init();
     }
 
